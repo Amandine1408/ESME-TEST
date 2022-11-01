@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include <stdio.h>
 #include <conio.h>
 #include <fstream>
 #include <string>
@@ -15,25 +16,25 @@ bool gameOver;
 const int largeur=20;
 const int hauteur=20;
 //On definie les coordonées que notre snake prends à chaque fois qu'il bouge, elles varient
-int x;
-int y;
+int a=2;
+int b=1;
 //On definie les coordonnées d'un fruit qui va bouger à chaque fois qu'il va être mangé 
 int x_bis;
 int y_bis;
 //Score qui va augmanter à chaque fois qu'il va y avoir une colision entre le snake et ma pomme, soit entre les coordonnées
 int score;
-int pas_tableau;
-int pas_Tableau;
-char tableau[12];
-int Tableau[3][4];
+char tab[4][3];
+
 enum eDirecton{STOP=0, Ouest, Nord, Est, Sud};
 eDirecton direction;
 
 void mise_en_place(){
     gameOver=false;
     direction=STOP;
-    x=largeur/2;
-    y=hauteur/2;
+    // On positionne notre serpent à cet endroit pour le debut 
+    a=1;
+    b=2;
+
 
 
 }
@@ -80,10 +81,10 @@ void Affichage(){
  
 //Stockage de tout les caractères dans un tableau 
 void Stockage_map(){
-    char tab[5][5];
+    
     char c;
     int k, i=0, j=0; /* k indice de lecture des lignes, i nombre de lignes, j indice caractère */
-    int g=1;
+    
     FILE *file = fopen("map.txt", "r");
     if (file == NULL)
         exit(EXIT_FAILURE);
@@ -99,7 +100,14 @@ void Stockage_map(){
  
         else
         {
-            tab[i][j] = c; /* affectation du caractère à l'index j */
+            if (c==35){
+                tab[i][j] = 0; /* affectation du caractère à l'index j */
+            }
+            else{
+                tab[i][j] = 1;/* affectation du caractère à l'index j */
+            }
+             
+            
             j++; /* index suivant pour le caractère suivant */
             
         }
@@ -108,28 +116,59 @@ void Stockage_map(){
     }
  
     fclose(file);
- 
-    for (k=0; k<i+1; k++) /* lecture des lignes enregistrées dans la variable tab */
-        printf("%s\n", tab[k]);
     
-    tab[1][1]=g;
+    
+    //for (k=0; k<i; k++) /* lecture des lignes enregistrées dans la variable tab */
+        //printf("%s\n", tab[k]);
+    
+    
     //printf("%d", tab[1][2]);
     
     
-
- 
-    
 }
 
-//On affiche la map 
-void Afficher_map(){
-   
+//On affiche la map; 
+void Affichermap(){
+    int p=4;
+    for (int i = 0; i < 3; i++)
+    {
+        for (int j = 0; j < 4; j++)
+        {
+
+            if (tab[i][j]==0 and j==3){
+                printf("#\n");
+            
+            }
+            else if (tab[i][j]==0){
+                printf("#");
+            }
+            
+            else if (tab[i][j]==2){
+                printf("O");
+            }
+
+
+            else{
+                printf(" ");
+
+            }
+
+            //printf("%d",tab[i][j]);
+        }
+    
+    }
+    
+    
+    
+
 }
 
 //Placer notre snake 
-void se_placer(int a, int b)
+void se_placer()
 {
-    printf("%c[%d;%df",0x1B,a,b);
+    tab[a][b]=2;
+
+    
 }
 
 // Nettoyer la console, pour faire bouger le snake
@@ -174,19 +213,19 @@ void deplacer(){
     switch (direction)
     {
     case Ouest:
-        x--;
+        a--;
         break;
 
     case Est:
-        x++;
+        a++;
         break;
 
     case Sud:
-        y--;
+        b--;
         break;
 
     case Nord:
-        y++;
+        b++;
         break;
     
     default:
@@ -199,17 +238,17 @@ int main()
 {
     mise_en_place();
     Stockage_map();
+    
     //Stockage_map();
     
     
     //while (!gameOver)
     //{
-        
-    //();
     //detection_touche();
     //deplacer();
-    //sleep(10);
-
+    se_placer();
+    
+    Affichermap();
     //}
     
     
