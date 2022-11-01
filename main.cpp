@@ -22,6 +22,10 @@ int x_bis;
 int y_bis;
 //Score qui va augmanter à chaque fois qu'il va y avoir une colision entre le snake et ma pomme, soit entre les coordonnées
 int score;
+int pas_tableau;
+int pas_Tableau;
+char tableau[12];
+int Tableau[3][4];
 enum eDirecton{STOP=0, Ouest, Nord, Est, Sud};
 eDirecton direction;
 
@@ -76,37 +80,56 @@ void Affichage(){
  
 //Stockage de tout les caractères dans un tableau 
 void Stockage_map(){
-    /* Pointer to the file */
-     FILE *fp1;
-     /* Character variable to read the content of file */
-     char c;
-
-     /* Opening a file in r mode*/
-     fp1= fopen ("map.txt", "r");
-
-     /* Infinite loop –I have used break to come out of the loop*/
-     while(1)
-     {
-        
-        c = fgetc(fp1);
-        if(c==EOF)
-           break;
+    char tab[5][5];
+    char c;
+    int k, i=0, j=0; /* k indice de lecture des lignes, i nombre de lignes, j indice caractère */
+    int g=1;
+    FILE *file = fopen("map.txt", "r");
+    if (file == NULL)
+        exit(EXIT_FAILURE);
+ 
+    c = fgetc(file); /* lecture du 1er caractère du fichier */
+    while (c != EOF) /* Tant qu'on est pas en fin de fichier */
+    {
+        if (c == '\n')
+        {
+            tab[i][j] = '\0'; /* on ajoute le caractère de fin de chaîne de caractères */
+            i++, j=0; /* Ligne suivante, remise à 0 de l'index des caractères */
+        }
+ 
         else
-            printf("%c", c);
-     }
-     fclose(fp1);
+        {
+            tab[i][j] = c; /* affectation du caractère à l'index j */
+            j++; /* index suivant pour le caractère suivant */
+            
+        }
+ 
+        c = fgetc(file); /* lecture du prochaine caractère */
+    }
+ 
+    fclose(file);
+ 
+    for (k=0; k<i+1; k++) /* lecture des lignes enregistrées dans la variable tab */
+        printf("%s\n", tab[k]);
+    
+    tab[1][1]=g;
+    //printf("%d", tab[1][2]);
+    
+    
 
+ 
+    
 }
 
 //On affiche la map 
 void Afficher_map(){
-
+   
 }
 
 //Placer notre snake 
 void se_placer(int a, int b)
 {
-    printf("%c[%d;%df",0x1B,y,x);
+    printf("%c[%d;%df",0x1B,a,b);
 }
 
 // Nettoyer la console, pour faire bouger le snake
@@ -176,6 +199,7 @@ int main()
 {
     mise_en_place();
     Stockage_map();
+    //Stockage_map();
     
     
     //while (!gameOver)
