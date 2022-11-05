@@ -3,19 +3,6 @@
 #include <stdio.h>
 #include <conio.h>
 #include <fstream>
-#include <string>
-#include <windows.h>
-
-//A faire aujourd'hui:
-//résoudre probleme affichage 
-//Connecter les fléches
-//Faire apparaitre une pomme
-//Gerer les colisions
-// Ajouter un score 
-using namespace std;
-
-// Fin du jeu
-bool gameOver=false;
 
 // Dimension de mon jeu
 const int kLargeur=40;
@@ -26,6 +13,20 @@ const int kbordure=0;
 const int kpion=2;
 const int kvide=1 ;
 
+// Longueur maximum du serpent
+const int kLongeurMaxSerpent=10
+
+type tSerpent{
+    int longeur=0;
+    int tabCoordonnees [kLongeurMaxSerpent][kLongeurMaxSerpent]
+}
+
+// Serpent
+tSerpent vSerpent;
+
+// Fin du jeu
+bool gameOver=false;
+
 // Coordonnées courantes de notre snake
 int vHauteur=0;
 int vLargeur=0;
@@ -34,20 +35,22 @@ int vLargeur=0;
 int vHauteur_p=0;
 int vLargeur_p=0;
 
-// Coordonnées courantes d'un fruit qui va bouger à chaque fois qu'il va être mangé 
-int x_bis;
-int y_bis;
+// Coordonnées courantes du fruit 
+int vHauteur_fruit;
+int vLargeur_fruit;
 
 // Score qui va augmenter à chaque fois qu'il va y avoir une collision entre le snake et ma pomme, soit entre les coordonnées
-int score;
+int score=0;
+
+//Construction d'un tableau pour stocker ma map 
 char tab[kHauteur][kLargeur];
 
-// Définition des directions
+// Définition les directions que peut prendre mon snake 
 enum eDirecton{STOP=0, Gauche, Haut, Droite, Bas};
 eDirecton direction;
 
-// Initialisation
-void mise_en_place(){
+// Initialisation de mon jeu 
+void Mise_en_place(){
     gameOver=false;
     direction=STOP;
     
@@ -57,53 +60,14 @@ void mise_en_place(){
 
     // Les valeurs précédentes sont les mêmes que les valeurs courantes 
     vHauteur_p=vHauteur;
-    vLargeur_p
-    =vLargeur;
+    vLargeur_p=vLargeur;
 
 } // Fin mise_en_place
 
-void Affichage(){
-    //system("cls");
-    //cout<<"Bonjour nous allons vous présenter notre snakes \n"<<endl;
-    //printf("Bonjour nous allons vous présenter notre snakes \n");
-    //sleep(2);
-    //printf("Bon jeu \n");
-    //Premier ligne du haut
-    //for (int i=0; i < largeur+2; i++ )
-    
-       // cout << "a";
 
-    //cout << endl;
-    //Pour chaque coté 
-    //for (int i=0; i< hauteur; i++){
-        //for (int k=0; k<largeur; k++){
-            //if (k==0)
-                //cout<<"b";
-
-            //if (i==y && k==x)
-                //cout<<"O";
-            //if (k!=0)
-            //Vide au milieu
-            //else
-                //cout<<" ";
-
-            //if (k==largeur-1)
-                //cout<<"b";
-
-            
-        //}
-        //cout<<endl;
-    //}
-    // Ligne de fin
-    //for (int i=0; i<largeur+2;i++)
-        //cout<<"a";
-    //cout<<endl;
-    
-
-}
  
-//Stockage de tout les caractères dans un tableau 
-void Stockage_map(){
+//Stockage de tout les caractères de la map dans un tableau 
+void ChargerMap(){
     // Déclaration
     char c;
     int k, i=0, j=0; /* k indice de lecture des lignes, i nombre de lignes, j indice caractère */
@@ -146,19 +110,10 @@ void Stockage_map(){
  
     // Fermeture du fichier d'initialisation
     fclose(file);
-    
-    
-    //for (k=0; k<i; k++) /* lecture des lignes enregistrées dans la variable tab */
-        //printf("%s\n", tab[k]);
-    
-    
-    //printf("%d", tab[1][2]);
-    
-    
 } // Fin Stockage_Map
 
-//On affiche la map; 
-void Affichermap(){
+//On affiche la map qui va definir le contour de mon jeu; 
+void AfficherMap(){
     
     for (int i = 0; i < kHauteur; i++)
     {
@@ -182,36 +137,18 @@ void Affichermap(){
                 printf(" ");
 
             }
-
-            //printf("%d",tab[i][j]);
         }
-    
     }
-    
-    
-    
-
 }
 
-//Placer notre snake 
-void positionner_pion()
-{
-    tab[vHauteur_p][vLargeur_p]=kvide;
-    tab[vHauteur][vLargeur]=kpion;
-} // Fin Positionner_pion
-
-void Effacer_ancien_pion()
-{
-    tab[vHauteur][vLargeur]=1;
-}
 
 // Nettoyer la console, pour faire bouger le snake
-void clrscr(void)
+void EffacerEcran(void)
 {
     system("cls");
 }
 
-// Lecture direction
+// Capture la direction choisie
 void LireDirection(){
     // Si une touche est frappée, je mémorise la direction
     if (_kbhit()){
@@ -226,7 +163,6 @@ void LireDirection(){
             case 's':
                 direction=Droite;
                 break;
-
             
             // Bas
             case 'l':
@@ -251,94 +187,110 @@ void LireDirection(){
     }
 } // Fin LireDirection
 
-void deplacer(){
+// Calcule la nouvelle position du pion
+void DeplacerPion(){
+
+    // Conservation de l'ancienne position
+    vLargeur_p=vLargeur;
+    vHauteur_p=vHauteur;
+    
     switch (direction)
     {
-    case Gauche:
-        // Si on ne depasse pas le mur de gauche on se deplace vers la gauche 
-        if(vLargeur>0){
-            vLargeur_p=vLargeur;
-            vLargeur--;
-        }
-        // Si on depasse le mur on meurt 
-        else gameOver=true;
-        break;
+        case Gauche:
+            // Si on ne depasse pas le mur de gauche on se deplace vers la gauche 
+            if(vLargeur>1)
+                vLargeur--;
+            // Si on depasse le mur on meurt 
+            else gameOver=true;
+            break;
 
-    case Droite:
-        // Si on ne depasse pas le mur de Droite on se deplace vers la Droite
-        if (vLargeur<(kLargeur-1)){
-            vLargeur_p=vLargeur;
-            vLargeur++;
-        } 
-        // Si on depasse le mur on meurt 
-        else gameOver=true;
-        break;
+        case Droite:
+            // Si on ne depasse pas le mur de Droite on se deplace vers la Droite
+            if (vLargeur<(kLargeur-2))
+                vLargeur++;
+            // Si on depasse le mur on meurt 
+            else gameOver=true;
+            break;
 
-    case Bas:
-        // Si on ne depasse pas le mur du bas on se deplace vers le bas
-         
-        if (vHauteur<(kHauteur-1)){
-            vHauteur_p=vHauteur;
-            vHauteur++;
-        }
-        // Si on depasse le mur on meurt 
-        else gameOver=true; 
-        break;
+        case Bas:
+            // Si on ne depasse pas le mur du bas on se deplace vers le bas
+            
+            if (vHauteur<(kHauteur-2))
+                vHauteur++;
+            // Si on depasse le mur on meurt 
+            else gameOver=true; 
+            break;
 
-    case Haut:
-        // Si on ne depasse pas le mur du haut on se deplace vers le haut
-        if (vHauteur>0){
-            vHauteur_p=vHauteur;
-            vHauteur--;
-        } 
-        // Si on depasse le mur on meurt 
-        else gameOver=true;
-        break;
+        case Haut:
+            // Si on ne depasse pas le mur du haut on se deplace vers le haut
+            if (vHauteur>1)
+                vHauteur--;
+            // Si on depasse le mur on meurt 
+            else gameOver=true;
+            break;
     
-    default:
-       break;
+        default:
+        break;
     }
 } 
 
-void gotoxy(int x,int y)    
-{
-    printf("%c[%d;%df",0x1B,y+1,x+1);
-}
-
-void AfficherPion()
+// Affiche le pion sur la MAP
+void AfficherPion()    
 {
     // Tempo
-    Sleep (15);
+    sleep (250);
 
-    // Affichage de la nouvelle position du pion
-    gotoxy (vLargeur_p,vHauteur_p);
+    // Efface l'ancienne position
+    printf("%c[%d;%df", 0x1B, vHauteur_p+1,vLargeur_p+1);
     printf(" ");
-    gotoxy (vLargeur,vHauteur);
-    printf("O");
 
-} // Fin AfficherPion
+    // Affiche la pion
+    printf("%c[%d;%df", 0x1B, vHauteur+1,vLargeur+1);
+    printf("O");
+} // Fin AfficherPion,
+
+void AfficherFruit(){
+    
+    //Définir des positions aléatoire pour notre fruit
+    vHauteur_fruit=rand()%kHauteur+1;
+    vLargeur_fruit=rand()%kLargeur+1;
+
+    //Afficher notre fruit
+    printf("%c[%d;%df", 0x1B, vHauteur_fruit, vLargeur_fruit);
+    printf("F");
+} // AfficherFruit
+
+void MangerFruit(){
+    if ((vHauteur==(vHauteur_fruit-1)) and (vLargeur==(vLargeur_fruit-1))){
+        score++;
+        AfficherFruit();
+    }
+} // MangerFruit
 
 int main() 
 {
-    clrscr();
-    mise_en_place();
-    Stockage_map();
-    Affichermap();
+    // Initialisation
+    EffacerEcran();
+    Mise_en_place();
+    ChargerMap();
+    AfficherMap();
+    AfficherFruit();
+    
 
     while (!gameOver)
     {
-        // j'applique donne les coordonnees 
-        // positionner_pion();
-
-        //Affiche tout 
+        // Affiche le pion 
         AfficherPion();
-
-        //Effacement de l case précedente 
-        // Effacer_ancien_pion();
+        
+        // Lit la nouvelle direction
         LireDirection ();
-        deplacer();
-    }
-    
-    
+
+        // Calcul la nouvelle position du pion
+        DeplacerPion();
+
+        // Est-ce que je suis sur le fruit ?
+        MangerFruit();
+        
+    }    
     return 0;
 }
