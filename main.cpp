@@ -2,7 +2,10 @@
 #include <iostream>
 #include <stdio.h>
 #include <conio.h>
+#include <time.h>
 #include <fstream>
+#include <windows.h>
+#include <C:\Users\marret\Desktop/PremierProjet/ESME-TEST/serpent.h>
 
 // Dimension de mon jeu
 const int kLargeur=40;
@@ -12,17 +15,6 @@ const int kHauteur=20;
 const int kbordure=0;
 const int kpion=2;
 const int kvide=1 ;
-
-// Longueur maximum du serpent
-const int kLongeurMaxSerpent=10
-
-type tSerpent{
-    int longeur=0;
-    int tabCoordonnees [kLongeurMaxSerpent][kLongeurMaxSerpent]
-}
-
-// Serpent
-tSerpent vSerpent;
 
 // Fin du jeu
 bool gameOver=false;
@@ -46,25 +38,67 @@ int score=0;
 char tab[kHauteur][kLargeur];
 
 // Définition les directions que peut prendre mon snake 
-enum eDirecton{STOP=0, Gauche, Haut, Droite, Bas};
+enum eDirecton{Stop=0, Gauche, Haut, Droite, Bas};
 eDirecton direction;
 
-// Initialisation de mon jeu 
-void Mise_en_place(){
+// Serpent
+struct tSerpent vSerpent;
+
+// Initialiser le jeu
+void InitialiserSerpent()
+{
+    // Inialisation du jeu
     gameOver=false;
-    direction=STOP;
-    
-    // On positionne notre serpent à cet endroit pour le debut 
+    direction=Stop;
+
+    // Positionnement de notre serpent : première case
     vHauteur=1;
     vLargeur=2;
 
-    // Les valeurs précédentes sont les mêmes que les valeurs courantes 
-    vHauteur_p=vHauteur;
-    vLargeur_p=vLargeur;
+    // Initialisation de notre serpent : Ancienne position 
+    vSerpent.longueur = 1 ;
+    vSerpent.tabCoordonnees[0].Horizontal=vLargeur;
+    vSerpent.tabCoordonnees[0].Vertical=vHauteur;
+} // Fin InitialiserSerpent
 
-} // Fin mise_en_place
+// Affiche le serpent sur la MAP :
 
+void InsererTeteSerpent ()
+{
+    // J'augmente la dimension du serpent si le score a augmente
+    if (score<kLongeurMaxSerpent) vSerpent.longueur=score+1;
 
+    // Je décale le corps de mon serpent (en oubliant le dernier élément car la tête a bougé)
+    for (int i=vSerpent.longueur-1;i>0;i--){
+        vSerpent.tabCoordonnees[i].Horizontal=vSerpent.tabCoordonnees[i-1].Horizontal;
+        vSerpent.tabCoordonnees[i].Vertical=vSerpent.tabCoordonnees[i-1].Vertical;
+    }
+ 
+    // J'insère la tête
+    vSerpent.tabCoordonnees[0].Horizontal=vLargeur;
+    vSerpent.tabCoordonnees[0].Vertical=vHauteur;
+} // Fin insererDeplacement
+
+void AfficherSerpent()    
+{
+    // Tempo
+    Sleep (200);
+
+    // J'efface l'ancienne position du serpent
+    for (int i=0;i<vSerpent.longueur;i++){
+        printf("%c[%d;%df", 0x1B, vSerpent.tabCoordonnees[i].Vertical+1,vSerpent.tabCoordonnees[i].Horizontal+1);
+        printf(" ");
+    }
+
+    // J'insère la tête
+    InsererTeteSerpent();
+
+    // J'affiche le serpent en prenant en compte son déplacement
+    for (int i=0;i<vSerpent.longueur;i++){
+        printf("%c[%d;%df", 0x1B, vSerpent.tabCoordonnees[i].Vertical+1,vSerpent.tabCoordonnees[i].Horizontal+1);
+        printf("o");
+    }
+} // Fin AfficherPion
  
 //Stockage de tout les caractères de la map dans un tableau 
 void ChargerMap(){
@@ -121,11 +155,11 @@ void AfficherMap(){
         {
 
             if (tab[i][j]==0 and j==(kLargeur-1)){
-                printf("#\n");
+                printf("a\n");
             
             }
             else if (tab[i][j]==kbordure){
-                printf("#");
+                printf("a");
             }
             
             else if (tab[i][j]==kpion){
@@ -140,7 +174,6 @@ void AfficherMap(){
         }
     }
 }
-
 
 // Nettoyer la console, pour faire bouger le snake
 void EffacerEcran(void)
@@ -232,25 +265,10 @@ void DeplacerPion(){
         default:
         break;
     }
-} 
-
-// Affiche le pion sur la MAP
-void AfficherPion()    
-{
-    // Tempo
-    sleep (250);
-
-    // Efface l'ancienne position
-    printf("%c[%d;%df", 0x1B, vHauteur_p+1,vLargeur_p+1);
-    printf(" ");
-
-    // Affiche la pion
-    printf("%c[%d;%df", 0x1B, vHauteur+1,vLargeur+1);
-    printf("O");
-} // Fin AfficherPion,
+} // Fin DeplacerPion 
 
 void AfficherFruit(){
-    
+    srand(time(NULL));
     //Définir des positions aléatoire pour notre fruit
     vHauteur_fruit=rand()%kHauteur+1;
     vLargeur_fruit=rand()%kLargeur+1;
@@ -267,20 +285,29 @@ void MangerFruit(){
     }
 } // MangerFruit
 
+void AfficherScore(){
+    printf("%c[%d;%df", 0x1B, 3, 50);
+    printf("votre score est de: %d",score);
+}
+
 int main() 
 {
+    EffacerEcran();
+    printf("Bonjour voici notre snake, realise en mode console! Bon jeu");
+    Sleep(800);
+
     // Initialisation
     EffacerEcran();
-    Mise_en_place();
+    InitialiserSerpent();
     ChargerMap();
     AfficherMap();
     AfficherFruit();
     
-
     while (!gameOver)
     {
+        AfficherScore();
         // Affiche le pion 
-        AfficherPion();
+        AfficherSerpent();
         
         // Lit la nouvelle direction
         LireDirection ();
@@ -290,7 +317,6 @@ int main()
 
         // Est-ce que je suis sur le fruit ?
         MangerFruit();
-        
     }    
     return 0;
 }
