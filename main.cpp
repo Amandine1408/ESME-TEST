@@ -33,7 +33,8 @@ int vLargeur_fruit;
 
 // Score qui va augmenter à chaque fois qu'il va y avoir une collision entre le snake et ma pomme, soit entre les coordonnées
 int score=0;
-
+//BESTSCORE
+int best_score=0;
 //Construction d'un tableau pour stocker ma map 
 char tab[kHauteur][kLargeur];
 
@@ -82,7 +83,7 @@ void InsererTeteSerpent ()
 void AfficherSerpent()    
 {
     // Tempo
-    Sleep (200);
+    Sleep (150);
 
     // J'efface l'ancienne position du serpent
     for (int i=0;i<vSerpent.longueur;i++){
@@ -175,6 +176,16 @@ void AfficherMap(){
     }
 }
 
+void Best_score(){
+    FILE *f;
+    char c;
+    f=fopen("best_score.txt","rt");
+    while((c=fgetc(f))!=EOF){
+        best_score=c;
+    }
+    fclose(f);
+
+}
 // Nettoyer la console, pour faire bouger le snake
 void EffacerEcran(void)
 {
@@ -193,17 +204,17 @@ void LireDirection(){
                 break;
 
             //Droite
-            case 's':
+            case 'd':
                 direction=Droite;
                 break;
             
             // Bas
-            case 'l':
+            case 's':
                 direction=Bas;
                 break;
 
             // Haut        
-            case 'p':
+            case 'z':
                 direction=Haut;
                 break;
 
@@ -273,6 +284,11 @@ void AfficherFruit(){
     vHauteur_fruit=rand()%kHauteur+1;
     vLargeur_fruit=rand()%kLargeur+1;
 
+    while ((vHauteur_fruit<1 or vHauteur_fruit>=kHauteur-2) or (vLargeur_fruit<1 or vLargeur_fruit>=kLargeur-2)){
+        vHauteur_fruit=rand()%kHauteur+1;
+        vLargeur_fruit=rand()%kLargeur+1;
+    }
+
     //Afficher notre fruit
     printf("%c[%d;%df", 0x1B, vHauteur_fruit, vLargeur_fruit);
     printf("F");
@@ -288,6 +304,11 @@ void MangerFruit(){
 void AfficherScore(){
     printf("%c[%d;%df", 0x1B, 3, 50);
     printf("votre score est de: %d",score);
+
+    printf("%c[%d;%df", 0x1B, 5, 50);
+    printf("Le record est de: %c",best_score);
+
+    
 }
 
 int main() 
@@ -295,6 +316,7 @@ int main()
     EffacerEcran();
     printf("Bonjour voici notre snake, realise en mode console! Bon jeu");
     Sleep(800);
+    Best_score();
 
     // Initialisation
     EffacerEcran();
@@ -318,5 +340,13 @@ int main()
         // Est-ce que je suis sur le fruit ?
         MangerFruit();
     }    
+
+    printf("%c[%d;%df", 0x1B, 10, 9);
+    printf("GAME OVER LES PETITS LOUPS");
+
+    
+    if (score>best_score){
+        best_score=score;
     return 0;
+    }
 }
