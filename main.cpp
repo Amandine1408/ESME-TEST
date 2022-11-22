@@ -1,12 +1,13 @@
 
 #include <iostream>
+#include <sstream>
 #include <stdio.h>
 #include <conio.h>
 #include <time.h>
 #include <fstream>
 #include <windows.h>
 #include <C:\Users\marret\Desktop/PremierProjet/ESME-TEST/serpent.h>
-
+using namespace std;
 // Dimension de mon jeu
 const int kLargeur=40;
 const int kHauteur=20;
@@ -44,6 +45,7 @@ eDirecton direction;
 
 // Serpent
 struct tSerpent vSerpent;
+
 
 // Initialiser le jeu
 void InitialiserSerpent()
@@ -176,16 +178,6 @@ void AfficherMap(){
     }
 }
 
-void Best_score(){
-    FILE *f;
-    char c;
-    f=fopen("best_score.txt","rt");
-    while((c=fgetc(f))!=EOF){
-        best_score=c;
-    }
-    fclose(f);
-
-}
 // Nettoyer la console, pour faire bouger le snake
 void EffacerEcran(void)
 {
@@ -301,22 +293,108 @@ void MangerFruit(){
     }
 } // MangerFruit
 
+//Afficher le score en continu 
 void AfficherScore(){
     printf("%c[%d;%df", 0x1B, 3, 50);
     printf("votre score est de: %d",score);
-
-    printf("%c[%d;%df", 0x1B, 5, 50);
-    printf("Le record est de: %c",best_score);
-
-    
 }
+
+
+//Enregistrer le score si celui ci est supérieur aux précédents
+void Enregistrer_best_score()
+{
+    FILE *file = fopen("best_score.txt", "w");
+    if(file==NULL){
+        printf("Erreur lors de l'ouverture d'un fichier");
+        exit(1);
+    }
+    
+    fprintf(file, "%d\n", best_score);
+    
+    fclose(file);
+    // Pour le nom du meilleur joueur 
+    
+    char nom[20];
+    
+    FILE *file1 = fopen("nom_record.txt", "w");
+    if(file1==NULL){
+        printf("Erreur lors de l'ouverture d'un fichier");
+        exit(1);
+    }
+    // Amélioration de notre jeu, pour la gestion du nom du meilleur joueur
+    
+    //printf("Saisir votre nom :");
+    //scanf("%s",&nom);
+
+    fprintf(file1, "%s\n", nom);
+    
+    fclose(file1);
+}
+
+//Afficher le meilleur score, nous devons l'améliorer 
+int Best_score(){
+    char strLigne[70];
+    int intBestScore;
+    
+    // Lecture du fichier
+    FILE *file = fopen("best_score.txt", "r");
+    if (file == NULL)
+        exit(EXIT_FAILURE);
+ 
+    // Lecture de la ligne
+    fgets (strLigne, 70, file);
+    intBestScore = atoi(strLigne);
+ 
+    // Fermeture du fichier d'initialisation
+    fclose(file);
+    
+    return intBestScore;
+} // Fin Best_score
+
+// En recherche 
+string nom_score(){
+    string strNom;
+    char* temp;
+    
+    // Lecture du fichier
+    FILE *file = fopen("nom_record.txt", "r");
+    if (file == NULL)
+        exit(EXIT_FAILURE);
+ 
+    // Lecture du nom
+    
+    fgets (temp, 10, file);
+    strNom = string(temp);
+    
+    // Fermeture du fichier d'initialisation
+    fclose(file);
+    //printf("%c",strNom);
+    //strNOM=*strNom;
+    
+    return strNom;
+}
+
+//En recherche
+void afficher_best_score(){
+    //char nom;
+    //nom=nom_score();
+    //string strNom;
+    //strNom=nom_score();
+    
+    best_score=Best_score();
+    printf("%c[%d;%df", 0x1B, 7, 50);
+    //,strNom.c_str()
+    printf("Le meilleur score est de: %d ",best_score);
+ 
+}
+
 
 int main() 
 {
     EffacerEcran();
     printf("Bonjour voici notre snake, realise en mode console! Bon jeu");
     Sleep(800);
-    Best_score();
+    
 
     // Initialisation
     EffacerEcran();
@@ -324,6 +402,7 @@ int main()
     ChargerMap();
     AfficherMap();
     AfficherFruit();
+    afficher_best_score();
     
     while (!gameOver)
     {
@@ -343,10 +422,14 @@ int main()
 
     printf("%c[%d;%df", 0x1B, 10, 9);
     printf("GAME OVER LES PETITS LOUPS");
-
     
     if (score>best_score){
+        //EffacerEcran();
         best_score=score;
-    return 0;
+        Enregistrer_best_score();
+    
     }
+    
+    return 0;  
+
 }
